@@ -10,22 +10,25 @@ const proxy = httpProxy.createProxyServer({
 });
 
 proxy.on('proxyRes', function (proxyRes, req, res) {
-  // 1. Remove the blocks coming from Chess.com
-  delete proxyRes.headers['x-frame-options'];
-  delete proxyRes.headers['content-security-policy'];
-  
-  // 2. Add a new rule that allows YOUR proxy to be framed anywhere
-  // This fixes the "Render refuses to connect" error
-  res.setHeader('Content-Security-Policy', "frame-ancestors *");
-  res.setHeader('X-Frame-Options', 'ALLOWALL');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  
-  Object.keys(proxyRes.headers).forEach(function (key) {
-    res.setHeader(key, proxyRes.headers[key]);
-  });
-  proxyRes.pipe(res);
-});
+    // 1. Strip security headers
+    delete proxyRes.headers['x-frame-options'];
+    delete proxyRes.headers['content-security-policy'];
+    
+    // 2. FORCE LINKS TO STAY ON PROXY
+    // If the site tries to redirect you to /play, this changes it to ://your-proxy.com
+    if (proxyRes.headers['location']) {
+        let redirect = proxyRes.headers['location'];
+        proxyRes.headers['location'] = redirect.replace('https://chess.com', `https://${req.headers.host}`);
+    }
 
+    res.setHeader('Content-Security-Policy', "frame-ancestors *");
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
+    Object.keys(proxyRes.headers).forEach(function (key) {
+        res.setHeader(key, proxyRes.headers[key]);
+    });
+    proxyRes.pipe(res);
+});
 
 // Handle errors to prevent crashes
 proxy.on('error', function (err, req, res) {
