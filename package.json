@@ -1,0 +1,10 @@
+{
+  "name": "my-proxy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "http": "^0.0.1-security",
+    "http-proxy": "^1.18.1"
+  },
+  "scripts": { "start": "node index.js" }
+}
