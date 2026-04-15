@@ -9,23 +9,23 @@ const proxy = httpProxy.createProxyServer({
   selfHandleResponse: true // Essential for the proxyRes listener to work
 });
 
-// Fix the warning: Only set the listener ONCE, outside the server creation
 proxy.on('proxyRes', function (proxyRes, req, res) {
-  // Strip security headers
+  // 1. Remove the blocks coming from Chess.com
   delete proxyRes.headers['x-frame-options'];
   delete proxyRes.headers['content-security-policy'];
   
-  // Allow CodePen to access
+  // 2. Add a new rule that allows YOUR proxy to be framed anywhere
+  // This fixes the "Render refuses to connect" error
+  res.setHeader('Content-Security-Policy', "frame-ancestors *");
+  res.setHeader('X-Frame-Options', 'ALLOWALL');
   res.setHeader('Access-Control-Allow-Origin', '*');
   
-  // Forward all other headers
   Object.keys(proxyRes.headers).forEach(function (key) {
     res.setHeader(key, proxyRes.headers[key]);
   });
-
-  // Pipe the data back to the user
   proxyRes.pipe(res);
 });
+
 
 // Handle errors to prevent crashes
 proxy.on('error', function (err, req, res) {
