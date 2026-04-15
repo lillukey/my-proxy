@@ -1,25 +1,33 @@
-document.getElementById('launch-btn').addEventListener('click', function() {
-  const win = window.open('about:blank', '_blank');
-  
-  // Replace the URL below with your actual Replit/Proxy URL
-  const myProxyURL = "https://replit.app";
+const http = require('http');
+const httpProxy = require('http-proxy');
 
-  const proxyContent = `
-    <html>
-    <head>
-      <title>My Drive - Google Drive</title>
-      <link rel="icon" type="image/x-icon" href="https://gstatic.com">
-      <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        iframe { width: 100%; height: 100%; border: none; }
-      </style>
-    </head>
-    <body>
-      <iframe src="${myProxyURL}"></iframe>
-    </body>
-    </html>`;
+const proxy = httpProxy.createProxyServer({
+  target: 'https://chess.com',
+  changeOrigin: true,
+  autoRewrite: true,
+  followRedirects: true,
+  selfHandleResponse: true
+});
 
-  win.document.open();
-  win.document.write(proxyContent);
-  win.document.close();
+const server = http.createServer((req, res) => {
+  proxy.web(req, res);
+
+  proxy.on('proxyRes', function (proxyRes, req, res) {
+    // These lines are what remove the X-Frame blocks
+    delete proxyRes.headers['x-frame-options'];
+    delete proxyRes.headers['content-security-policy'];
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
+    Object.keys(proxyRes.headers).forEach(function (key) {
+      res.setHeader(key, proxyRes.headers[key]);
+    });
+    proxyRes.pipe(res);
+  });
+});
+
+// Use Render's port
+const port = process.env.PORT || 10000;
+server.listen(port, () => {
+  console.log('Proxy server is live on port ' + port);
 });
