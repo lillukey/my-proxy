@@ -39,26 +39,22 @@ proxy.on('proxyRes', function (proxyRes, req, res) {
       let content = buffer.toString('utf8');
       
       // Rewrite chess.com links to your Render URL
-      // ... inside your text/html rewriting block ...
-      const host = req.headers.host;
-      
+      const host = req.headers.host;      
       // Rewriting main domain
       content = content.replace(/www\.chess\.com/g, host);
-      content = content.replace(/chess\.com/g, host);
-      
+      content = content.replace(/chess\.com/g, host);     
       // Rewriting Asset & Video Domains (This fixes the "middle" image/video)
       content = content.replace(/images\.chesscomfiles\.com/g, host);
       content = content.replace(/betacssjs\.chesscomfiles\.com/g, host);
-      content = content.replace(/files\.chesscomfiles\.com/g, host); 
-      
+      content = content.replace(/files\.chesscomfiles\.com/g, host);     
       // Optional: Fixes common "missing pieces" or board assets
       content = content.replace(/https:\/\/www\.chess\.com\/bundles/g, `https://${host}/bundles`);
-
-
       // Clean up headers for the modified response
       delete proxyRes.headers['content-encoding'];
       delete proxyRes.headers['content-length'];
-
+      content = content.replace(/chesscomfiles\.com/g, host);
+      content = content.replace(/static\.chess\.com/g, host);
+      content = content.replace(/assets\.chess\.com/g, host);
       Object.keys(proxyRes.headers).forEach(key => res.setHeader(key, proxyRes.headers[key]));
       res.end(content);
     });
