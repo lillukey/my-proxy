@@ -42,6 +42,8 @@ proxy.on('proxyRes', function (proxyRes, req, res) {
       const host = req.headers.host;
       content = content.replace(/www\.chess\.com/g, host);
       content = content.replace(/chess\.com/g, host);
+      content = content.replace(/images\.chesscomfiles\.com/g, host);
+      content = content.replace(/betacssjs\.chesscomfiles\.com/g, host);
 
       // Clean up headers for the modified response
       delete proxyRes.headers['content-encoding'];
